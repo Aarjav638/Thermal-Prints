@@ -58,6 +58,7 @@ const App = () => {
       await ThermalPrinterModule.printTcp({payload: 'hello world'});
     } catch (err) {
       console.log((err as any).message);
+      Alert.alert('No Printer Connected to the Network');
     }
   };
 
@@ -67,6 +68,7 @@ const App = () => {
       await ThermalPrinterModule.printBluetooth({payload: 'hello world'});
     } catch (err) {
       console.log((err as any).message);
+      Alert.alert('No Printer Connected to the Bluetooth');
     }
   };
 
