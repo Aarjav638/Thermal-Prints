@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+npm run lint ||
+{
+  echo "Lint failed"
+  exit 1
+}
+
+npm run lint:fix ||
+{
+  echo "Lint fix failed"
+  exit 1
+}
+
+npm run format ||
+{
+    echo "Format failed"
+    exit 1
+}
