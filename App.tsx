@@ -57,7 +57,11 @@ const App = () => {
       console.log('Printing...');
       await ThermalPrinterModule.printTcp({payload: 'hello world'});
     } catch (err) {
-      console.log((err as any).message);
+      if (err instanceof Error) {
+        console.log(err.message);
+      } else {
+        console.log('Unknown error', err);
+      }
       Alert.alert('No Printer Connected to the Network');
     }
   };
@@ -67,14 +71,17 @@ const App = () => {
       console.log('Printing...');
       await ThermalPrinterModule.printBluetooth({payload: 'hello world'});
     } catch (err) {
-      console.log((err as any).message);
+      if (err instanceof Error) {
+        console.log(err.message);
+      } else {
+        console.log('Unknown error', err);
+      }
       Alert.alert('No Printer Connected to the Bluetooth');
     }
   };
 
   return (
     <View
-      // eslint-disable-next-line react-native/no-inline-styles
       style={{
         flex: 1,
         justifyContent: 'center',
