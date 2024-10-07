@@ -1,11 +1,9 @@
-import {View, NativeModules, Button, Alert} from 'react-native';
-import React from 'react';
+import {NativeModules, Button, Text, View} from 'react-native';
+import React, {useState} from 'react';
 import {LogLevel, OneSignal} from 'react-native-onesignal';
-import ThermalPrinterModule from 'react-native-thermal-printer';
-import {useNetInfo} from '@react-native-community/netinfo';
-const App = () => {
-  const [ipAddress, setIpAddress] = React.useState('');
+const {BluetoothPrinter, USBPrinter} = NativeModules;
 
+export default function App() {
   OneSignal.Debug.setLogLevel(LogLevel.Verbose);
 
   OneSignal.initialize('b51a4c39-d728-4338-b117-6435fd2b3137');
@@ -16,90 +14,73 @@ const App = () => {
     console.log('OneSignal: notification clicked:', event);
   });
 
-  const {CustomModule} = NativeModules;
-  const netInfo = useNetInfo();
-  const getIpAddress = React.useCallback(() => {
-    try {
-      if (netInfo.details && 'ipAddress' in netInfo.details) {
-        setIpAddress(netInfo.details.ipAddress as string);
-      } else {
-        console.log('ipAddress not available');
-      }
-    } catch (error) {
-      console.log('error', error);
-    }
-  }, [netInfo.details]);
+  const [pairedPrinters, setPairedPrinters] = useState([]);
+  const [status, setStatus] = useState('');
 
-  React.useEffect(() => {
-    getIpAddress();
-  }, [getIpAddress, netInfo.isConnected]);
-
-  const onpress = async () => {
+  const getPairedPrinters = async () => {
     try {
-      const res = await CustomModule.createEvent('Testing', 'Test Location');
-      Alert.alert(
-        'Response',
-        `Event Name ${res.name} location ${res.location}`,
-        [{text: 'OK'}],
-      );
+      const printers = await BluetoothPrinter.getPairedPrinters();
+      setPairedPrinters(printers);
     } catch (error) {
-      console.log('error', error);
+      console.error(error);
     }
   };
 
-  const handleNetworkPrint = async () => {
-    console.log('ipAddress', ipAddress);
-    ThermalPrinterModule.defaultConfig.ip = ipAddress;
-    ThermalPrinterModule.defaultConfig.port = 9100;
-    ThermalPrinterModule.defaultConfig.autoCut = false;
-    ThermalPrinterModule.defaultConfig.timeout = 30000;
+  const connectToUsbPrinter = async () => {
     try {
-      console.log('Printing...');
-      await ThermalPrinterModule.printTcp({payload: 'hello world'});
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log(err.message);
-      } else {
-        console.log('Unknown error', err);
-      }
-      Alert.alert('No Printer Connected to the Network');
+      await USBPrinter.connectToUsbPrinter();
+      setStatus(`Connected to USB printer`);
+    } catch (error) {
+      console.error(error);
+      setStatus('Failed to connect to printer');
     }
   };
 
-  const handleBluetoothPrint = async () => {
+  const printTextUsingUSB = async () => {
     try {
-      console.log('Printing...');
-      await ThermalPrinterModule.printBluetooth({payload: 'hello world'});
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log(err.message);
-      } else {
-        console.log('Unknown error', err);
-      }
-      Alert.alert('No Printer Connected to the Bluetooth');
+      await USBPrinter.printText('Hello, this is a test print!');
+      setStatus('Printed successfully');
+    } catch (error) {
+      console.error(error);
+      setStatus('Print failed');
+    }
+  };
+
+  const connectToBltPrinter = async (printerName: string) => {
+    try {
+      await BluetoothPrinter.connectToPrinter(printerName);
+      setStatus(`Connected to ${printerName}`);
+    } catch (error) {
+      console.error(error);
+      setStatus('Failed to connect to printer');
+    }
+  };
+
+  const printTextUsingBlt = async () => {
+    try {
+      await BluetoothPrinter.printText('Hello, this is a test print!');
+      setStatus('Printed successfully');
+    } catch (error) {
+      console.error(error);
+      setStatus('Print failed');
     }
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        gap: 15,
-        alignItems: 'center',
-      }}>
-      <Button title="Invoke Native Module" onPress={onpress} />
+    <View>
+      <Button title="Get Paired Printers" onPress={getPairedPrinters} />
+      {pairedPrinters.length > 0 && (
+        <Button
+          title={`Connect to ${pairedPrinters[0]}`}
+          onPress={() => connectToBltPrinter(pairedPrinters[0])}
+        />
+      )}
+      <Button title="Print Text" onPress={printTextUsingBlt} />
+      <Text>{status}</Text>
 
-      <Button
-        title="Print Using Network Printer"
-        onPress={handleNetworkPrint}
-      />
-      <Button
-        title="Print Using Bluetooth Printer"
-        onPress={handleBluetoothPrint}
-      />
+      <Button title={`Connect to USB Printer`} onPress={connectToUsbPrinter} />
+      <Button title="Print Text" onPress={printTextUsingUSB} />
+      <Text>{status}</Text>
     </View>
   );
-};
-
-export default App;
+}

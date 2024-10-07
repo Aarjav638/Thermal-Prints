@@ -107,9 +107,16 @@ android {
     }
 }
 
-dependencies {
+dependencies { 
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
+implementation files('libs/PrinterLib_24.aar')
+implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+implementation group: 'com.google.zxing', name: 'core', version: '3.4.1'
+implementation group: 'com.google.zxing', name: 'android-core', version: '3.3.0'
+
+    
 implementation platform('com.google.firebase:firebase-bom:33.4.0')
 implementation 'com.google.firebase:firebase-analytics'
     if (hermesEnabled.toBoolean()) {
