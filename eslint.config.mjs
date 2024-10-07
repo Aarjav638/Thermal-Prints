@@ -43,7 +43,7 @@ export default [
       'prettier/prettier': 'error',
       'react/react-in-jsx-scope': 'off', // For React 17+
       '@typescript-eslint/no-explicit-any': 'off', // Allow any type
-      // 'linebreak-style': ['error', 'unix'],
+      'linebreak-style': ['error', 'unix'],
     },
   },
 
